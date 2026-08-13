@@ -16,12 +16,11 @@ Python 3.10 or newer is required.
 python -m venv .venv
 ```
 
-Windows:
+Windows PowerShell:
 
 ```bash
-.venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
 ```
 
 The API runs at `http://127.0.0.1:8000` and Swagger UI is available at `http://127.0.0.1:8000/docs`.
