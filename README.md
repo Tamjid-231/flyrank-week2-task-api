@@ -142,3 +142,9 @@ The project currently has 15 automated tests. They cover the required endpoints,
 ## Expected reset behaviour
 
 This project does not use a database or file storage. If the server is stopped and started again, tasks created during the previous run are removed and the original three sample tasks return. This is expected for this assignment.
+
+## Author
+
+Md. Tamjid Hossain
+
+FlyRank AI Internship — Backend Track, Week 2
