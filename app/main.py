@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, StrictBool, field_validator
 
 
 app = FastAPI(title="Task API", version="1.0.0")
@@ -14,6 +14,7 @@ class Task(BaseModel):
 
 
 class TaskCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     title: str
 
     @field_validator("title")
@@ -22,6 +23,19 @@ class TaskCreate(BaseModel):
         if not value.strip():
             raise ValueError("title must not be empty")
         return value.strip()
+
+
+class TaskUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    title: str | None = None
+    done: StrictBool | None = None
+
+    @field_validator("title")
+    @classmethod
+    def title_must_not_be_empty(cls, value: str | None):
+        if value is not None and not value.strip():
+            raise ValueError("title must not be empty")
+        return value.strip() if value is not None else value
 
 
 tasks = [
@@ -74,3 +88,36 @@ def create_task(task_data: TaskCreate):
     new_task = {"id": next_id, "title": task_data.title, "done": False}
     tasks.append(new_task)
     return new_task
+
+
+@app.put("/tasks/{task_id}", response_model=Task, summary="Update a task")
+def update_task(task_id: int, task_data: TaskUpdate):
+    task = find_task(task_id)
+    if task is None:
+        return JSONResponse(
+            status_code=404,
+            content={"error": f"Task {task_id} not found"},
+        )
+
+    changes = task_data.model_dump(exclude_none=True)
+    if not changes:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Provide title and/or done"},
+        )
+
+    task.update(changes)
+    return task
+
+
+@app.delete("/tasks/{task_id}", status_code=204, summary="Delete a task")
+def delete_task(task_id: int):
+    task = find_task(task_id)
+    if task is None:
+        return JSONResponse(
+            status_code=404,
+            content={"error": f"Task {task_id} not found"},
+        )
+
+    tasks.remove(task)
+    return None
