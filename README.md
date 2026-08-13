@@ -1,29 +1,68 @@
 # Task API
 
-This is my Week 2 assignment for the FlyRank Backend Track. I built a small in-memory to-do API with FastAPI. It supports the full CRUD cycle: create, read, update and delete tasks.
+This is my Week 2 assignment for the FlyRank Backend Track. I built a small to-do API with Python and FastAPI to understand how CRUD operations work in a backend application.
+
+The API can create, read, update and delete tasks. It uses an in-memory Python list instead of a database, so tasks created while the server is running disappear after a restart. The three sample tasks are then loaded again.
 
 ## What I learned
 
-This project helped me understand how an HTTP method and a path work together as an endpoint. I also learned why an API should return clear status codes and validate a request before trusting it.
+While building this project, I learned how an HTTP method and a path work together as an endpoint. I also practised request-body validation, JSON responses, status codes, Swagger UI and Git commits.
 
-The task list is stored in memory. If the server restarts, any tasks added while it was running disappear and the three example tasks return. This is expected because the project does not use a database.
+One important lesson was that the server should not trust every request. A missing or empty title returns a clear `400` response, and an unknown task ID returns `404` instead of an empty successful response.
+
+## Project structure
+
+```text
+app/
+  __init__.py
+  main.py
+docs/
+  swagger-ui.png
+tests/
+  test_api.py
+.gitignore
+README.md
+requirements.txt
+requirements-dev.txt
+```
+
+- `app/main.py` contains the FastAPI application, models, validation and routes.
+- `tests/test_api.py` checks the CRUD cycle, errors and status codes.
+- `docs/swagger-ui.png` is evidence of the running interactive documentation.
+
+## How it works
+
+The server starts with three example tasks stored in a Python list. Each task contains an integer `id`, a text `title` and a boolean `done` value.
+
+- `GET` reads tasks.
+- `POST` creates a task, assigns the next ID and sets `done` to `false`.
+- `PUT` changes the title, the done status, or both.
+- `DELETE` removes a task and returns an empty `204` response.
+
+The application uses Pydantic models to validate request data. FastAPI also creates the OpenAPI description and Swagger UI automatically.
 
 ## Install and run
 
 Python 3.10 or newer is required.
 
-```bash
+Create a virtual environment:
+
+```powershell
 python -m venv .venv
 ```
 
-Windows PowerShell:
+Install the packages and start the server in Windows PowerShell:
 
-```bash
+```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
 ```
 
-The API runs at `http://127.0.0.1:8000` and Swagger UI is available at `http://127.0.0.1:8000/docs`.
+The API runs at `http://127.0.0.1:8000`.
+
+- Swagger UI: `http://127.0.0.1:8000/docs`
+- Health check: `http://127.0.0.1:8000/health`
+- Task list: `http://127.0.0.1:8000/tasks`
 
 ## Endpoints
 
@@ -37,7 +76,33 @@ The API runs at `http://127.0.0.1:8000` and Swagger UI is available at `http://1
 | PUT | `/tasks/{task_id}` | Update a task | 200 |
 | DELETE | `/tasks/{task_id}` | Delete a task | 204 |
 
-Invalid request bodies return `400` with a JSON error. An unknown task ID returns `404` with a JSON error.
+## Request examples
+
+Create a task:
+
+```json
+{
+  "title": "Buy milk"
+}
+```
+
+Update a task:
+
+```json
+{
+  "title": "Buy milk today",
+  "done": true
+}
+```
+
+## Validation and errors
+
+| Situation | Status | Response |
+| --- | --- | --- |
+| Missing or empty POST title | 400 | JSON error |
+| Empty or invalid PUT body | 400 | JSON error |
+| Unknown task ID | 404 | `{"error":"Task 99 not found"}` |
+| Successful delete | 204 | Empty body |
 
 ## Example curl output
 
@@ -59,15 +124,21 @@ content-type: application/json
 
 ## Swagger UI
 
-The screenshot below was taken from the running project. All required endpoints appear in the interactive documentation.
+I tested the full CRUD cycle from Swagger UI: create a task, read it, update it, delete it and confirm that the deleted ID returns `404`.
 
 ![Task API Swagger UI](docs/swagger-ui.png)
 
 ## Run the tests
 
-```bash
-pip install -r requirements-dev.txt
-pytest -q
+Install the development requirements and run the test suite:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.\.venv\Scripts\python.exe -m pytest -q
 ```
 
-The automated test suite checks the CRUD cycle, validation, status codes, JSON errors and the empty `204` response.
+The project currently has 15 automated tests. They cover the required endpoints, validation rules, status codes, JSON errors, OpenAPI responses and the empty `204` delete response.
+
+## Expected reset behaviour
+
+This project does not use a database or file storage. If the server is stopped and started again, tasks created during the previous run are removed and the original three sample tasks return. This is expected for this assignment.
