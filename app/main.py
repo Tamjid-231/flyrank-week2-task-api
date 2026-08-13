@@ -4,7 +4,11 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, StrictBool, field_validator
 
 
-app = FastAPI(title="Task API", version="1.0.0")
+app = FastAPI(
+    title="Task API",
+    version="1.0.0",
+    description="A beginner-friendly in-memory CRUD API for managing tasks.",
+)
 
 
 class Task(BaseModel):
@@ -56,22 +60,22 @@ async def validation_error_handler(request: Request, exc: RequestValidationError
     return JSONResponse(status_code=400, content={"error": message})
 
 
-@app.get("/", summary="Describe the API")
+@app.get("/", summary="Describe the API", tags=["System"])
 def api_information():
     return {"name": "Task API", "version": "1.0", "endpoints": ["/tasks"]}
 
 
-@app.get("/health", summary="Check server health")
+@app.get("/health", summary="Check server health", tags=["System"])
 def health_check():
     return {"status": "ok"}
 
 
-@app.get("/tasks", response_model=list[Task], summary="List all tasks")
+@app.get("/tasks", response_model=list[Task], summary="List all tasks", tags=["Tasks"])
 def list_tasks():
     return tasks
 
 
-@app.get("/tasks/{task_id}", response_model=Task, summary="Get one task")
+@app.get("/tasks/{task_id}", response_model=Task, summary="Get one task", tags=["Tasks"])
 def get_task(task_id: int):
     task = find_task(task_id)
     if task is None:
@@ -82,7 +86,13 @@ def get_task(task_id: int):
     return task
 
 
-@app.post("/tasks", response_model=Task, status_code=201, summary="Create a task")
+@app.post(
+    "/tasks",
+    response_model=Task,
+    status_code=201,
+    summary="Create a task",
+    tags=["Tasks"],
+)
 def create_task(task_data: TaskCreate):
     next_id = max((task["id"] for task in tasks), default=0) + 1
     new_task = {"id": next_id, "title": task_data.title, "done": False}
@@ -90,7 +100,7 @@ def create_task(task_data: TaskCreate):
     return new_task
 
 
-@app.put("/tasks/{task_id}", response_model=Task, summary="Update a task")
+@app.put("/tasks/{task_id}", response_model=Task, summary="Update a task", tags=["Tasks"])
 def update_task(task_id: int, task_data: TaskUpdate):
     task = find_task(task_id)
     if task is None:
@@ -110,7 +120,7 @@ def update_task(task_id: int, task_data: TaskUpdate):
     return task
 
 
-@app.delete("/tasks/{task_id}", status_code=204, summary="Delete a task")
+@app.delete("/tasks/{task_id}", status_code=204, summary="Delete a task", tags=["Tasks"])
 def delete_task(task_id: int):
     task = find_task(task_id)
     if task is None:
