@@ -1,6 +1,6 @@
 # Task API
 
-This is my Week 2 backend assignment for the FlyRank AI Internship. I built a small in-memory to-do API with FastAPI. It supports the full CRUD cycle: create, read, update and delete tasks.
+This is my Week 2 assignment for the FlyRank Backend Track. I built a small in-memory to-do API with FastAPI. It supports the full CRUD cycle: create, read, update and delete tasks.
 
 ## What I learned
 
