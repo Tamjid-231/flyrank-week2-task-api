@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, StrictBool, field_validator
 
@@ -131,3 +132,29 @@ def delete_task(task_id: int):
 
     tasks.remove(task)
     return None
+
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+    )
+    for path, path_item in schema["paths"].items():
+        for method, operation in path_item.items():
+            responses = operation.get("responses", {})
+            responses.pop("422", None)
+            if method in {"post", "put"}:
+                responses.setdefault("400", {"description": "Invalid request body"})
+            if "{task_id}" in path:
+                responses.setdefault("404", {"description": "Task not found"})
+
+    app.openapi_schema = schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi

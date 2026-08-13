@@ -82,3 +82,10 @@ def test_delete_unknown_task_returns_404():
     response = client.delete("/tasks/99")
     assert response.status_code == 404
     assert response.json() == {"error": "Task 99 not found"}
+
+
+def test_openapi_documents_assignment_status_codes():
+    schema = client.get("/openapi.json").json()
+    assert "400" in schema["paths"]["/tasks"]["post"]["responses"]
+    assert "422" not in schema["paths"]["/tasks"]["post"]["responses"]
+    assert "404" in schema["paths"]["/tasks/{task_id}"]["get"]["responses"]
